@@ -1,8 +1,22 @@
+const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'; // 请自行修改此值
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const path = url.pathname.substring(1);
+    let path = url.pathname.substring(1);
+    const prefix = UUID + '/';
 
+    if (!path.startsWith(prefix) && path !== UUID) {
+      if (path === '') {
+        return Response.redirect(new URL('/' + UUID + '/', url.origin), 302);
+      }
+      return new Response('未授权，请使用正确的UUID路径', { status: 403 });
+    }
+    if (path.startsWith(prefix)) {
+      path = path.substring(prefix.length);
+    } else if (path === UUID) {
+      path = '';
+    }
     if (path === "locations") {
       return locations_cn(request);
     }
