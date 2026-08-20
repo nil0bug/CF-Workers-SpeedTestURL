@@ -1,5 +1,5 @@
 // 此 UUID 值会被 GitHub Actions 自动替换，请勿手动修改格式
-const UUID = '17bcb2be-813f-4bf9-9366-e4521e92202f';
+const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
 export default {
   async fetch(request) {
@@ -7,22 +7,15 @@ export default {
     let path = url.pathname.substring(1);
     const prefix = UUID + '/';
 
-    // UUID 路径限定检查
-    if (!path.startsWith(prefix) && path !== UUID) {
-      if (path === '') {
-        return Response.redirect(new URL('/' + UUID + '/', url.origin), 302);
-      }
+    // 🔒 严格校验：必须以 UUID + '/' 开头，否则直接 403（包括根目录、仅 UUID 等）
+    if (!path.startsWith(prefix)) {
       return new Response('未授权', { status: 403 });
     }
 
-    // 剥离 UUID 前缀
-    if (path.startsWith(prefix)) {
-      path = path.substring(prefix.length);
-    } else if (path === UUID) {
-      path = '';
-    }
+    // 剥离 UUID 前缀，得到有效子路径
+    path = path.substring(prefix.length);
 
-    // —— 原有逻辑（未作任何改动） ——
+    // —— 以下为原有逻辑（未作任何改动） ——
     if (path === "locations") {
       return locations_cn(request);
     }
@@ -54,7 +47,6 @@ export default {
     }));
   }
 };
-
 async function locations_cn(request) {
   const response = await fetch('https://speed.cloudflare.com/locations', {
     headers: { 'referer': 'https://speed.cloudflare.com/' }
