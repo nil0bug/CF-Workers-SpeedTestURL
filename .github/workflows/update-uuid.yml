@@ -7,7 +7,7 @@ jobs:
   update-uuid:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # 允许提交代码
+      contents: write   # 允许推送代码
 
     steps:
       - name: Checkout repository
@@ -21,13 +21,30 @@ jobs:
 
       - name: Replace UUID in worker.js
         run: |
-          # 将 const UUID = '...' 替换为新 UUID
-          sed -i "s/const UUID = '.*';/const UUID = '${{ steps.gen.outputs.uuid }}';/" worker.js
+          FILE="worker.js"                    # ⚠️ 确保与实际文件名一致
+          if [ ! -f "$FILE" ]; then
+            echo "❌ 文件 $FILE 不存在，请检查仓库根目录"
+            exit 1
+          fi
+          # 执行替换（带备份）
+          sed -i.bak "s/const UUID = '.*';/const UUID = '${{ steps.gen.outputs.uuid }}';/" "$FILE"
+          # 验证是否替换成功
+          if grep -q "const UUID = '${{ steps.gen.outputs.uuid }}';" "$FILE"; then
+            echo "✅ UUID 已更新为 ${{ steps.gen.outputs.uuid }}"
+          else
+            echo "❌ 替换失败，请检查文件中的 UUID 格式是否为 const UUID = '...';"
+            exit 1
+          fi
 
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add worker.js
-          git commit -m "chore: update UUID to ${{ steps.gen.outputs.uuid }}"
-          git push
+          # 仅当有变更时才提交
+          if git diff --cached --quiet; then
+            echo "ℹ️ 没有检测到变更，可能 UUID 未成功替换"
+          else
+            git commit -m "chore: update UUID to ${{ steps.gen.outputs.uuid }}"
+            git push
+          fi
