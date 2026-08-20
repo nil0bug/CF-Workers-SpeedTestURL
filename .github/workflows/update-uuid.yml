@@ -7,7 +7,7 @@ jobs:
   update-uuid:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # 允许推送代码
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -19,20 +19,18 @@ jobs:
           NEW_UUID=$(uuidgen)
           echo "uuid=$NEW_UUID" >> $GITHUB_OUTPUT
 
-      - name: Replace UUID in worker.js
+      - name: Replace UUID in _worker.js
         run: |
-          FILE="worker.js"                    # ⚠️ 确保与实际文件名一致
+          FILE="_worker.js"
           if [ ! -f "$FILE" ]; then
             echo "❌ 文件 $FILE 不存在，请检查仓库根目录"
             exit 1
           fi
-          # 执行替换（带备份）
           sed -i.bak "s/const UUID = '.*';/const UUID = '${{ steps.gen.outputs.uuid }}';/" "$FILE"
-          # 验证是否替换成功
           if grep -q "const UUID = '${{ steps.gen.outputs.uuid }}';" "$FILE"; then
             echo "✅ UUID 已更新为 ${{ steps.gen.outputs.uuid }}"
           else
-            echo "❌ 替换失败，请检查文件中的 UUID 格式是否为 const UUID = '...';"
+            echo "❌ 替换失败，请检查文件中 UUID 声明格式是否为 const UUID = '...';"
             exit 1
           fi
 
@@ -40,10 +38,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add worker.js
-          # 仅当有变更时才提交
+          git add _worker.js
           if git diff --cached --quiet; then
-            echo "ℹ️ 没有检测到变更，可能 UUID 未成功替换"
+            echo "ℹ️ 无变更，可能替换未成功"
           else
             git commit -m "chore: update UUID to ${{ steps.gen.outputs.uuid }}"
             git push
