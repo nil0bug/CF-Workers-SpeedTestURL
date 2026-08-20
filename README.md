@@ -1,12 +1,13 @@
 # SpeedTest-CloudflareWorker
-
+个人所做更改为deepseek添加uuid路径限定
+可fork后在action自动再随机uuid，也可自找其他方式。
 ## 一、项目简介
 
 本项目是一个使用Cloudflare的Worker搭建SpeedTest测速地址的工程，主要代码在`_worker.js`文件中。通过本项目，你可以很容易地在Cloudflare上搭建起自己的测速服务。
 
 ## 二、功能介绍
 
-例如您的项目域名为 `speedtest.cmliussss.workers.dev`
+例如项目域名为 `speedtest.cmliussss.workers.dev`
 
 1. **默认测速大小为200MB**：当未在路径中指定测速大小时，项目会默认进行200MB的测速。
 
