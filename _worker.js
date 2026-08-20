@@ -1,4 +1,5 @@
-const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'; // 请自行修改此值
+// 此 UUID 值会被 GitHub Actions 自动替换，请勿手动修改格式
+const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
 export default {
   async fetch(request) {
@@ -6,28 +7,32 @@ export default {
     let path = url.pathname.substring(1);
     const prefix = UUID + '/';
 
+    // UUID 路径限定检查
     if (!path.startsWith(prefix) && path !== UUID) {
       if (path === '') {
         return Response.redirect(new URL('/' + UUID + '/', url.origin), 302);
       }
-      return new Response('未授权，请使用正确的UUID路径', { status: 403 });
+      return new Response('未授权', { status: 403 });
     }
+
+    // 剥离 UUID 前缀
     if (path.startsWith(prefix)) {
       path = path.substring(prefix.length);
     } else if (path === UUID) {
       path = '';
     }
+
+    // —— 原有逻辑（未作任何改动） ——
     if (path === "locations") {
       return locations_cn(request);
     }
 
-    let bytes = 100000000; // Default 100MB
+    let bytes = 100000000;
     if (path) {
       const match = path.match(/^(\d+)([a-z]{0,2})$/i);
       if (!match) {
         return new Response("路径格式不正确", { status: 400 });
       }
-
       const size = parseInt(match[1], 10);
       const unit = match[2].toLowerCase();
       const multipliers = {
