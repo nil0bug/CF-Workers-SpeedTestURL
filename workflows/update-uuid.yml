@@ -1,0 +1,33 @@
+name: Update UUID
+
+on:
+  workflow_dispatch:   # 手动触发
+
+jobs:
+  update-uuid:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 允许提交代码
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate random UUID
+        id: gen
+        run: |
+          NEW_UUID=$(uuidgen)
+          echo "uuid=$NEW_UUID" >> $GITHUB_OUTPUT
+
+      - name: Replace UUID in worker.js
+        run: |
+          # 将 const UUID = '...' 替换为新 UUID
+          sed -i "s/const UUID = '.*';/const UUID = '${{ steps.gen.outputs.uuid }}';/" worker.js
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add worker.js
+          git commit -m "chore: update UUID to ${{ steps.gen.outputs.uuid }}"
+          git push
